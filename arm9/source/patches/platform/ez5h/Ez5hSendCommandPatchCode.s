@@ -50,7 +50,7 @@ BEGIN_ASM_FUNC ez5h_sendSDIOCommand
 	push {r2-r6,lr}
 	lsls r2, r0, #24
 	@ fixed part of the EZ5H_CMD_SDMC_SDIO command
-	ldr r7, =0x0000FAB8
+	ldr r7, =0x0000AAB9
 	@ this is equivalent to an OR, since the values don't overlap, but we need an ADD instruction to use 3 regs
 	adds r0, r7, r2
 	@ r1 is passed as is, not byteswapped, while r0 is constructed already byteswapped

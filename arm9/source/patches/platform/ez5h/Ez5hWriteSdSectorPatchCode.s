@@ -180,7 +180,7 @@ ez5h_sendWriteDataRomCommand:
 .balign 4
 send_writedata_data:
 	.word EZ5H_CTRL_READ_0
-	.word 0xF6B8
+	.word 0xA6B9
 	.word REG_MCCNT0
 
 
@@ -204,7 +204,7 @@ ez5h_sdhc_write_label:
 	@ ez5h_sendSDIOCommand returned us EZ5H_CMD_SDMC_SEND_CLK(1) in r0-r1
 	@ save low word of command
 	movs r6, r0
-	CALL_NO_INTERWORK SEND_COMMAND_REG
+	@ CALL_NO_INTERWORK SEND_COMMAND_REG
 
 	@ we use lower short as value to write, upper short is EZ5H_CMD_SDMC_SEND_CRC_STATUS used below
 	adr r0, write_tokens_label
@@ -232,12 +232,12 @@ ez5h_sdhc_write_label:
 
 	@ write the crc
 	@ r0 gets automatically incremented in ez5h_sendWriteDataRomCommand
-	mov r0, sp
-	movs r3, #3
-1:
-	CALL_NO_INTERWORK SEND_WRITE_DATA_ROM_REG
-	subs r3, #1
-	bge 1b
+	@ mov r0, sp
+	@ movs r3, #3
+@ 1:
+	@ CALL_NO_INTERWORK SEND_WRITE_DATA_ROM_REG
+	@ subs r3, #1
+	@ bge 1b
 
 	@ wait crc status start acknowledgment
 	@ load EZ5H_CMD_SDMC_SEND_CRC_STATUS
@@ -250,7 +250,7 @@ ez5h_sdhc_write_label:
 
 	@ send single crc read clock
 	@ ===============================MAYBE BREAK====================
-	@ CALL_NO_INTERWORK SEND_COMMAND_REG
+	CALL_NO_INTERWORK SEND_COMMAND_REG
 
 	@ wait crc status acknowledged
 1:
@@ -273,4 +273,4 @@ sdio_fail_write:
 .balign 4
 .pool
 write_tokens_label:
-	.word 0xF8B8F0FF
+	.word 0xF8B9F0FF

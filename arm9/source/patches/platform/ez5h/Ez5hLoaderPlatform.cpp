@@ -12,12 +12,12 @@
 #define EZ5H_CTRL_READ_512B (EZ5H_CTRL_BASE | MCCNT1_LEN_512)
 
 // CARD_COMMANDs
-#define EZ5H_CMD_SDMC (0xB800000000000000ull)
-#define EZ5H_CMD_SDMC_READ_DATA (EZ5H_CMD_SDMC | 0x00F7000000000000ull)
+#define EZ5H_CMD_SDMC (0xB900000000000000ull)
+#define EZ5H_CMD_SDMC_READ_DATA (EZ5H_CMD_SDMC | 0x00AA060000000000ull)
 
 static inline constexpr u64 EZ5H_CMD_SDMC_PARAM_CARD(u8 idx, u8 cmd, u32 parameter)
 {
-    return (EZ5H_CMD_SDMC | 0x00FA000000000000ull | ((u64)idx << 40) | ((u64)cmd << 32) |
+    return (EZ5H_CMD_SDMC | 0x00AA000000000000ull | ((u64)idx << 40) | ((u64)cmd << 32) |
             (u64)parameter);
 }
 
