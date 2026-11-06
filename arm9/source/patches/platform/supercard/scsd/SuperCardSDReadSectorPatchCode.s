@@ -79,6 +79,7 @@ waitOnReadTrue_loop:
     lsrs r3, #9
     bcs waitOnReadTrue_loop
 
+    @ switch to arm
     adr r3, 1f
     bx r3
 .balign 4
@@ -99,7 +100,7 @@ read32_loop:
     pop {r1,r4-r11,lr}
     bx lr
 
-BEGIN_ARM_FUNCTION LOAD_U32_ALIGNED_2WORDS
+LOAD_U32_ALIGNED_2WORDS:
     ldmia r2, {r3-r10}
     @ (0x09100000 - 1) lsl 16 is 0xFFFF0000
     and    r6, r6, r11, lsl #16
