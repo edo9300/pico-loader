@@ -86,6 +86,7 @@ waitOnReadTrue_loop:
 1:
     push {r1,r4-r11,lr}
     add r1, r0, #512
+    ldr r11, =0xFFFF0000
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
@@ -101,8 +102,8 @@ read32_loop:
 BEGIN_ARM_FUNCTION LOAD_U32_ALIGNED_2WORDS
     ldmia r2, {r3-r10}
     @ 0x091FFFF0 lsl 12 is 0xFFFF0000
-    and    r6, r6, r2, lsl #12
-    and    r10, r10, r2, lsl #12
+    and    r6, r6, r11
+    and    r10, r10, r11
     orr    r6, r6, r4, lsr #16
     orr    r10, r10, r8, lsr #16
     stmia r0!, {r6, r10}

@@ -32,6 +32,6 @@
 .endm
 
 .equ sd_dataadd,     0x9000000
-.equ sd_dataread,    0x91FFFF0
+.equ sd_dataread,    0x9100000
 .equ sd_resetaddr,   0x9440000
 .equ reg_scsd_cmd,   0x9800000
