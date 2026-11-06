@@ -74,32 +74,32 @@ INTERWORK_FUNCTION sccmn_sdSendClock10 readInterwork
 @ void scsd_readData(void* buffer);
 BEGIN_ARM_FUNCTION scsd_readData
     push {r1,r4-r11,lr}
-    add r9, r0, #512
-    ldr r10, =sd_dataread
+    add r1, r0, #512
+    ldr r2, =sd_dataread
 waitOnReadTrue_loop:
-    ldrh r3, [r10]
+    ldrh r3, [r2]
     tst r3, #0x100
     bne waitOnReadTrue_loop
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
-    cmp r0, r9
+    cmp r0, r1
     blt read32_loop
     @drop crc16
-    ldmia r10, {r1-r8}
+    ldmia r2, {r3-r10}
     @read end transmission bit
-    ldrh r1, [r10]
+    ldrh r1, [r2]
     pop {r1,r4-r11,lr}
     bx lr
 
-LOAD_U32_ALIGNED_2WORDS:
-    ldmia r10, {r1-r8}
+BEGIN_ARM_FUNCTION LOAD_U32_ALIGNED_2WORDS
+    ldmia r2, {r3-r10}
     @ 0x091FFFF0 lsl 12 is 0xFFFF0000
-    and    r4, r4, r10, lsl #12
-    and    r8, r8, r10, lsl #12
-    orr    r4, r4, r2, lsr #16
-    orr    r8, r8, r6, lsr #16
-    stmia r0!, {r4, r8}
+    and    r6, r6, r2, lsl #12
+    and    r10, r10, r2, lsl #12
+    orr    r6, r6, r4, lsr #16
+    orr    r10, r10, r8, lsr #16
+    stmia r0!, {r6, r10}
     bx lr
 
 .balign 4
