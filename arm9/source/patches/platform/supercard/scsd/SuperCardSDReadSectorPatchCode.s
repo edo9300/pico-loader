@@ -69,36 +69,37 @@ INTERWORK_FUNCTION sccmn_sdSendClock10 readInterwork
 
 .section "scsd_read_data", "ax"
 
-.macro LOAD_U32_ALIGNED_2WORDS srcreg,dstreg,maskreg
-    ldmia \srcreg, {r1-r8}
-    and    r4, r4, \maskreg
-    and    r8, r8, \maskreg
-    orr    r4, r4, r2, lsr #16
-    orr    r8, r8, r6, lsr #16
-    stmia \dstreg!, {r4, r8}
-.endm
 @ this function will update r0 by incrementing it by 512
 @ and will leave r1 unchanged
 @ void scsd_readData(void* buffer);
 BEGIN_ARM_FUNCTION scsd_readData
-    push {r1,r4-r11}
+    push {r1,r4-r11,lr}
     add r9, r0, #512
-    ldr r10,= sd_dataread
+    ldr r10, =sd_dataread
 waitOnReadTrue_loop:
     ldrh r3, [r10]
     tst r3, #0x100
     bne waitOnReadTrue_loop
-    ldr r11,= 0xFFFF0000
 read32_loop:
-    LOAD_U32_ALIGNED_2WORDS r10, r0, r11
-    LOAD_U32_ALIGNED_2WORDS r10, r0, r11
+    bl LOAD_U32_ALIGNED_2WORDS
+    bl LOAD_U32_ALIGNED_2WORDS
     cmp r0, r9
     blt read32_loop
     @drop crc16
     ldmia r10, {r1-r8}
     @read end transmission bit
     ldrh r1, [r10]
-    pop {r1,r4-r11}
+    pop {r1,r4-r11,lr}
+    bx lr
+
+LOAD_U32_ALIGNED_2WORDS:
+    ldmia r10, {r1-r8}
+    @ 0x091FFFF0 lsl 12 is 0xFFFF0000
+    and    r4, r4, r10, lsl #12
+    and    r8, r8, r10, lsl #12
+    orr    r4, r4, r2, lsr #16
+    orr    r8, r8, r6, lsr #16
+    stmia r0!, {r4, r8}
     bx lr
 
 .balign 4
