@@ -72,14 +72,20 @@ INTERWORK_FUNCTION sccmn_sdSendClock10 readInterwork
 @ this function will update r0 by incrementing it by 512
 @ and will leave r1 unchanged
 @ void scsd_readData(void* buffer);
-BEGIN_ARM_FUNCTION scsd_readData
-    push {r1,r4-r11,lr}
-    add r1, r0, #512
+BEGIN_THUMB_FUNCTION scsd_readData
     ldr r2, =sd_dataread
 waitOnReadTrue_loop:
     ldrh r3, [r2]
-    tst r3, #0x100
-    bne waitOnReadTrue_loop
+    lsrs r3, #9
+    bcs waitOnReadTrue_loop
+
+    adr r3, 1f
+    bx r3
+.balign 4
+.arm
+1:
+    push {r1,r4-r11,lr}
+    add r1, r0, #512
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
