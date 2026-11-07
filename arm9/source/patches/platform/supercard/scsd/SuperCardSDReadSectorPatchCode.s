@@ -76,25 +76,28 @@ BEGIN_THUMB_FUNCTION scsd_readData
     @ loads sd_dataread
     movs r2, #0x91
     lsls r2, r2, #20
+
+    @ (0x09100000 - 1) is 0xXXXXFFFF
+    subs r3, r2, #1
 waitOnReadTrue_loop:
-    ldrh r3, [r2]
-    lsrs r3, #9
+    ldrh r4, [r2]
+    lsrs r4, #9
     bcs waitOnReadTrue_loop
 
-    @ switch to arm
-    adr r3, 1f
-    bx r3
+    @ switch to arm, we can trash r4 as it's used by the caller
+    @ to perform the interwork, so it holds no meaningful data
+    adr r4, 1f
+    bx r4
 .balign 4
 .arm
 1:
     push {r1,r4-r11,lr}
     add r1, r0, #512
-    sub r11, r2, #1
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
     cmp r0, r1
-    blt read32_loop
+    bne read32_loop
     @drop crc16
     ldmia r2, {r3-r10}
     @read end transmission bit
@@ -103,13 +106,13 @@ read32_loop:
     bx lr
 
 LOAD_U32_ALIGNED_2WORDS:
-    ldmia r2, {r3-r10}
+    ldmia r2, {r4-r11}
     @ (0x09100000 - 1) lsl 16 is 0xFFFF0000
-    and    r6, r6, r11, lsl #16
-    and    r10, r10, r11, lsl #16
-    orr    r6, r6, r4, lsr #16
-    orr    r10, r10, r8, lsr #16
-    stmia r0!, {r6, r10}
+    and    r7, r7, r3, lsl #16
+    and    r11, r11, r3, lsl #16
+    orr    r7, r7, r5, lsr #16
+    orr    r11, r11, r9, lsr #16
+    stmia r0!, {r7, r11}
     bx lr
 
 .balign 4
