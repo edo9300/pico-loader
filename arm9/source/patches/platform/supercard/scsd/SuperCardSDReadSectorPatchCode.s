@@ -73,7 +73,9 @@ INTERWORK_FUNCTION sccmn_sdSendClock10 readInterwork
 @ and will leave r1 unchanged
 @ void scsd_readData(void* buffer);
 BEGIN_THUMB_FUNCTION scsd_readData
-    ldr r2, =sd_dataread
+    @ loads sd_dataread
+    movs r2, #0x91
+    lsls r2, r2, #20
 waitOnReadTrue_loop:
     ldrh r3, [r2]
     lsrs r3, #9
