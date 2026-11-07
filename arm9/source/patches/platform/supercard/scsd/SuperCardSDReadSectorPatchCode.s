@@ -96,23 +96,27 @@ waitOnReadTrue_loop:
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
-    cmp r0, r1
-    bne read32_loop
+    @ use inverse check (r1 before r0) so that we can check for "greater than", which will
+    @ match the condition flags set by the subs at the start of the function, preventing us
+    @ from skipping a cycle in the load functions
+    cmp r1, r0
+    bgt read32_loop
     @drop crc16
     ldmia r2, {r3-r10}
     @read end transmission bit
     ldrh r1, [r2]
     pop {r1,r4-r11,lr}
-    bx lr
-
+    @ fall through to the last bx
 LOAD_U32_ALIGNED_2WORDS:
-    ldmia r2, {r4-r11}
+    @ we use gt conditional operations so that this piece of code is skipped over
+    @ if we broke out of the read32 loop
+    ldmiagt r2, {r4-r11}
     @ (0x09100000 - 1) lsl 16 is 0xFFFF0000
-    and    r7, r7, r3, lsl #16
-    and    r11, r11, r3, lsl #16
-    orr    r7, r7, r5, lsr #16
-    orr    r11, r11, r9, lsr #16
-    stmia r0!, {r7, r11}
+    andgt    r7, r7, r3, lsl #16
+    andgt    r11, r11, r3, lsl #16
+    orrgt    r7, r7, r5, lsr #16
+    orrgt    r11, r11, r9, lsr #16
+    stmiagt r0!, {r7, r11}
     bx lr
 
 .balign 4
