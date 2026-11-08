@@ -54,6 +54,8 @@ write_SDCommand_loop:
     subs r3, r3, #1
     bpl write_SDCommand_loop
 
+    @ drop_response
+
     @ loads sd_dataadd + sd_crc_bit + sd_rw4
     movs r1, #0x9B
     lsls r1, r1, #20
@@ -66,11 +68,10 @@ SDCommand_loop_2nd:
     lsrs r0, r0, #1
     bcs SDCommand_loop_2nd
 
-    movs r6, #4
-SDCommand_drop_resp:
     ldmia r7!, {r0-r5}
-    subs r6, r6, #1
-    bne SDCommand_drop_resp
+    ldmia r7!, {r0-r5}
+    ldmia r7!, {r0-r5}
+    ldmia r7!, {r0-r5}
 
     @ we pop from the stack r6 as pc, which corresponds to sccmn_sdSendClock10 or lr, if it is sccmn_sdSendClock10 that function
     @ is called, and that function doesn't push a new lr but pops a preexisting one from the stack, which in our case is the
