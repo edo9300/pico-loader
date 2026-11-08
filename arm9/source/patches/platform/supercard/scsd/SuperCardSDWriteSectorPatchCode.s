@@ -155,11 +155,13 @@ scsd_writeData_waitOnWriteFalse:
     @ transmission start bit (lower 16 bit of r5 are 0)
     strh r5, [r5]
 
-    @ mask to use in SCSD_writeBuffer32
-    ldr r6,= 0xFFFF
-
     @ amount of words to write
     movs r3, #0x80
+
+    @ mask to use in SCSD_writeBuffer32 (0xFFFF)
+    mvns r6, r3
+    lsrs r6, #16
+
     @ no need for special handling because those 2 functions will be in the same block
     bl SCSD_writeBuffer32
     @ save incremented r0 register
