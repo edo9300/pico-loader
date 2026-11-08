@@ -77,26 +77,27 @@ BEGIN_THUMB_FUNCTION scsd_readData
     movs r2, #0x91
     lsls r2, r2, #20
 
-    @ (0x09100000 - 1) is 0xXXXXFFFF
-    subs r3, r2, #1
 waitOnReadTrue_loop:
     ldrh r4, [r2]
     lsrs r4, #9
     bcs waitOnReadTrue_loop
 
+    @ amount of words to read
+    movs r4, #0x80
+
+    @ (0x09100000 - 1) is 0xXXXXFFFF
+    @ do it last so that it sets the condition flags for "gt" used below
+    subs r3, r2, #1
     @ switch to arm
     bx pc
 .balign 4
 .arm
     push {r1,r4-r11,lr}
-    add r1, r0, #512
 read32_loop:
     bl LOAD_U32_ALIGNED_2WORDS
     bl LOAD_U32_ALIGNED_2WORDS
-    @ use inverse check (r1 before r0) so that we can check for "greater than", which will
-    @ match the condition flags set by the subs at the start of the function, preventing us
-    @ from skipping a cycle in the load functions
-    cmp r1, r0
+    @ we have read 4 words
+    subs r4, #4
     bgt read32_loop
     @drop crc16
     ldmia r2, {r3-r10}
@@ -107,7 +108,7 @@ read32_loop:
 LOAD_U32_ALIGNED_2WORDS:
     @ we use gt conditional operations so that this piece of code is skipped over
     @ if we broke out of the read32 loop
-    ldmiagt r2, {r4-r11}
+    ldmiagt r2, {r1,r5-r11}
     @ (0x09100000 - 1) lsl 16 is 0xFFFF0000
     andgt    r7, r7, r3, lsl #16
     andgt    r11, r11, r3, lsl #16
