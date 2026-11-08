@@ -83,14 +83,18 @@ waitOnReadTrue_loop:
     bcs waitOnReadTrue_loop
 
     @ amount of words to read
+    @ use r4 as that register is already trashed by the caller to perform the interwork
     movs r4, #0x80
 
     @ (0x09100000 - 1) is 0xXXXXFFFF
     @ do it last so that it sets the condition flags for "gt" used below
     subs r3, r2, #1
-    @ switch to arm
+    @ switch to arm, this instruction needs to be properly aligned at a +2 boundary
+    @ so that it can properly jump to the arm code below, if needed, here's a nop,
+    @ you can have it
+    @ nop
     bx pc
-.balign 4
+
 .arm
     push {r1,r4-r11,lr}
 read32_loop:
