@@ -106,31 +106,26 @@ INTERWORK_FUNCTION scsd_writeData writeInterwork
 
 
 .section "scsd_write_data", "ax"
-.macro WRITE_SINGLE_U16 srcreg, secondreg, dstreg
-    lsrs \secondreg, \srcreg, #8
-    stmia \dstreg!, {\srcreg,\secondreg}
-.endm
-
-.macro WRITE_U32 srcreg,dstreg,maskreg
-    lsrs r4, \srcreg, #16
-    ands \srcreg, \srcreg, \maskreg
-    WRITE_SINGLE_U16 \srcreg, r7, \dstreg
-    WRITE_SINGLE_U16 r4, r7, \dstreg
+.macro WRITE_U32 srcreg,dstreg,scratch
+    lsrs \scratch, \srcreg, #8
+    stmia \dstreg!, {\srcreg,\scratch}
+    lsrs \srcreg, #16
+    lsrs \scratch, #16
+    @ we need explicitly 2 separate stores, otherwise the cart locks up
+    stmia \dstreg!, {\srcreg,\scratch}
 .endm
 
 @ void SCSD_writeBuffer32(uint32_t* buff_u32, uint32_t dummy, uint32_t dummy, uint32_t numwords)
 SCSD_writeBuffer32:
-    push {r4-r7,lr}
-
     @ r5 is SD_DATAADD, taken from the caller
 write32_loop:
     ldmia r0!, {r1, r2}
-    WRITE_U32 r1, r5, r6
-    WRITE_U32 r2, r5, r6
+    WRITE_U32 r1, r5, r4
+    WRITE_U32 r2, r5, r4
     subs r3, #2
     bgt write32_loop
 
-    pop {r4-r7,pc}
+    bx lr
 
 @ void scsd_writeData(void* buffer, int value_to_keep, int crc_buff1, int crc_buff2)
 BEGIN_THUMB_FUNCTION scsd_writeData
@@ -157,17 +152,12 @@ scsd_writeData_waitOnWriteFalse:
 
     @ amount of words to write
     movs r3, #0x80
-
-    @ mask to use in SCSD_writeBuffer32 (0xFFFF)
-    mvns r6, r3
-    lsrs r6, #16
-
-    @ no need for special handling because those 2 functions will be in the same block
     bl SCSD_writeBuffer32
     @ save incremented r0 register
     push {r0}
 
-    movs r3, #2
+    @ don't need to pass a size as r3 is already 0, and the write function will always
+    @ write at least 2 words before checking for negative
     @ the pushed crc buffer is at address sp+8
     add r0,sp, #8
     @ no need for special handling because those 2 functions will be in the same block
