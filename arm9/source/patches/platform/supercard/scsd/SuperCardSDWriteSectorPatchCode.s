@@ -114,26 +114,23 @@ INTERWORK_FUNCTION scsd_writeData writeInterwork
 .macro WRITE_U32 srcreg,dstreg,maskreg
     lsrs r4, \srcreg, #16
     ands \srcreg, \srcreg, \maskreg
-    WRITE_SINGLE_U16 \srcreg, r3, \dstreg
+    WRITE_SINGLE_U16 \srcreg, r7, \dstreg
     WRITE_SINGLE_U16 r4, r7, \dstreg
 .endm
 
-@ void SCSD_writeBuffer32(uint32_t* buff_u32, uint32_t size)
+@ void SCSD_writeBuffer32(uint32_t* buff_u32, uint32_t dummy, uint32_t dummy, uint32_t numwords)
 SCSD_writeBuffer32:
-    push {r1,r4-r7,lr}
-
-    adds r7, r0, r1
-    mov lr, r7
+    push {r4-r7,lr}
 
     @ r5 is SD_DATAADD, taken from the caller
 write32_loop:
     ldmia r0!, {r1, r2}
     WRITE_U32 r1, r5, r6
     WRITE_U32 r2, r5, r6
-    cmp lr, r0
-    bne write32_loop
+    subs r3, #2
+    bgt write32_loop
 
-    pop {r1, r4-r7,pc}
+    pop {r4-r7,pc}
 
 @ void scsd_writeData(void* buffer, int value_to_keep, int crc_buff1, int crc_buff2)
 BEGIN_THUMB_FUNCTION scsd_writeData
@@ -161,14 +158,14 @@ scsd_writeData_waitOnWriteFalse:
     @ mask to use in SCSD_writeBuffer32
     ldr r6,= 0xFFFF
 
-    movs r1, #0x80
-    lsls r1, r1, #2
+    @ amount of words to write
+    movs r3, #0x80
     @ no need for special handling because those 2 functions will be in the same block
     bl SCSD_writeBuffer32
     @ save incremented r0 register
     push {r0}
 
-    movs r1, #8
+    movs r3, #2
     @ the pushed crc buffer is at address sp+8
     add r0,sp, #8
     @ no need for special handling because those 2 functions will be in the same block
