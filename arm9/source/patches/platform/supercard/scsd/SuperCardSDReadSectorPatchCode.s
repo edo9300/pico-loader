@@ -84,13 +84,10 @@ waitOnReadTrue_loop:
     lsrs r4, #9
     bcs waitOnReadTrue_loop
 
-    @ switch to arm, we can trash r4 as it's used by the caller
-    @ to perform the interwork, so it holds no meaningful data
-    adr r4, 1f
-    bx r4
+    @ switch to arm
+    bx pc
 .balign 4
 .arm
-1:
     push {r1,r4-r11,lr}
     add r1, r0, #512
 read32_loop:
