@@ -8,9 +8,9 @@
 
 @ void sc_change_mode(uint16_t mode);
 BEGIN_THUMB_FUNCTION sccmn_changeMode
-	push {r0-r3,lr}
-    ldr r2,= 0x09FFFFFE
-    ldr r3,= 0xA55A
+    push {r0-r4,lr}
+    adr r4, change_mode_constants
+    ldmia r4, {r2,r3,r4}
     strh r3, [r2]
     strh r3, [r2]
     strh r0, [r2]
@@ -20,10 +20,9 @@ BEGIN_THUMB_FUNCTION sccmn_changeMode
 	@ if mode is 3 (sd enable), reset the sd card
     @ SDResetCard
     @ write 0
-    ldr r2, =sd_resetaddr
-    strh r2, [r2]
+    strh r4, [r4]
 1:
-    pop {r0-r3,pc}
+    pop {r0-r4,pc}
 
 @ void SDSendClock10(void)
 BEGIN_THUMB_FUNCTION sccmn_sdSendClock10
@@ -38,6 +37,12 @@ BEGIN_THUMB_FUNCTION sccmn_sdSendClock10
     subs r3, r3, #1
     bne 1b
     pop {r0-r3,pc}
+
+.balign 4
+change_mode_constants:
+    .word 0x09FFFFFE
+    .word 0x0000A55A
+    .word sd_resetaddr
 
 .section "scsd_common", "ax"
 
